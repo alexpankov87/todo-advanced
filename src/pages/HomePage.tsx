@@ -3,7 +3,9 @@ import { useAppSelector, useAppDispatch } from '../hooks/reduxHooks';
 import { fetchTasks } from '../features/tasks/tasksSlice';
 import { useFilteredAndSortedTasks } from '../hooks/useFilteredAndSortedTasks';
 import TasksList from '../features/tasks/TasksList';
+import TaskDetailsModal from '../features/tasks/TaskDetailsModal';
 import { useTheme } from '../context/ThemeContext';
+import CategoryManager from '../features/categories/CategoryManager';
 
 type FilterType = 'all' | 'active' | 'completed';
 type SortOrder = 'newest' | 'oldest';
@@ -11,38 +13,55 @@ type SortOrder = 'newest' | 'oldest';
 const HomePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const categories = useAppSelector(state => state.categories);
-  const { status } = useAppSelector(state => state.tasks); // статус загрузки
+  const { items: tasks, status } = useAppSelector(state => state.tasks);
+
+  // Состояния фильтров
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Состояния для модалок
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
   const { theme, toggleTheme } = useTheme();
 
-  // Загружаем задачи при первом рендере
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchTasks());
     }
   }, [status, dispatch]);
 
-  const tasks = useFilteredAndSortedTasks(filter, selectedCategory, sortOrder, searchQuery);
+  const filteredTasks = useFilteredAndSortedTasks(filter, selectedCategory, sortOrder, searchQuery);
+  const selectedTask = selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : null;
 
-  // Показываем загрузку, пока задачи не получены
+  const handleTaskClick = (taskId: string) => setSelectedTaskId(taskId);
+  const handleCloseModal = () => setSelectedTaskId(null);
+
   if (status === 'loading') return <div className="text-center dark:text-white">Загрузка задач...</div>;
   if (status === 'failed') return <div className="text-center text-red-500">Ошибка загрузки задач</div>;
 
   return (
     <div className="min-h-screen transition-colors duration-300 dark:bg-gray-900">
       <div className="container mx-auto p-4">
-        {/* Шапка с заголовком и переключателем темы */}
+        {/* Шапка с заголовком, кнопками категорий и темы */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold dark:text-white">Мои задачи</h1>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
-          >
-            {theme === 'light' ? '🌙 Тёмная' : '☀️ Светлая'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsCategoryManagerOpen(true)}
+              className="p-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
+            >
+              📁 Категории
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
+            >
+              {theme === 'light' ? '🌙 Тёмная' : '☀️ Светлая'}
+            </button>
+          </div>
         </div>
 
         {/* Поле поиска */}
@@ -54,8 +73,9 @@ const HomePage: React.FC = () => {
           className="w-full border rounded px-3 py-2 mb-4 dark:bg-gray-800 dark:text-white dark:border-gray-600"
         />
 
-        {/* Панель фильтров */}
+        {/* Панель фильтрации и сортировки (ВОССТАНОВЛЕНА) */}
         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center">
+          {/* Фильтр по статусу */}
           <div className="flex gap-2">
             {(['all', 'active', 'completed'] as const).map(f => (
               <button
@@ -72,6 +92,7 @@ const HomePage: React.FC = () => {
             ))}
           </div>
 
+          {/* Фильтр по категории */}
           <select
             value={selectedCategory || ''}
             onChange={(e) => setSelectedCategory(e.target.value || null)}
@@ -83,6 +104,7 @@ const HomePage: React.FC = () => {
             ))}
           </select>
 
+          {/* Сортировка */}
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOrder)}
@@ -93,8 +115,20 @@ const HomePage: React.FC = () => {
           </select>
         </div>
 
-        <TasksList tasks={tasks} />
+        {/* Список задач */}
+        <TasksList tasks={filteredTasks} onTaskClick={handleTaskClick} />
       </div>
+
+      {/* Модальное окно управления категориями */}
+      <CategoryManager
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+      />
+
+      {/* Модальное окно деталей задачи */}
+      {selectedTask && (
+        <TaskDetailsModal task={selectedTask} onClose={handleCloseModal} />
+      )}
     </div>
   );
 };
