@@ -6,6 +6,8 @@ import TasksList from '../features/tasks/TasksList';
 import TaskDetailsModal from '../features/tasks/TaskDetailsModal';
 import { useTheme } from '../context/ThemeContext';
 import CategoryManager from '../features/categories/CategoryManager';
+// Импорты для тостов остаются (они работают)
+import toast from 'react-hot-toast';
 
 type FilterType = 'all' | 'active' | 'completed';
 type SortOrder = 'newest' | 'oldest';
@@ -15,13 +17,10 @@ const HomePage: React.FC = () => {
   const categories = useAppSelector(state => state.categories);
   const { items: tasks, status } = useAppSelector(state => state.tasks);
 
-  // Состояния фильтров
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Состояния для модалок
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -45,35 +44,39 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen transition-colors duration-300 dark:bg-gray-900">
       <div className="container mx-auto p-4">
-        {/* Шапка с заголовком, кнопками категорий и темы */}
+        {/* Шапка с эмодзи */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold dark:text-white">Мои задачи</h1>
           <div className="flex gap-2">
             <button
               onClick={() => setIsCategoryManagerOpen(true)}
-              className="p-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
+              className="p-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-white flex items-center gap-1"
             >
-              📁 Категории
+              <span>📁</span>
+              <span className="hidden sm:inline">Категории</span>
             </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
             >
-              {theme === 'light' ? '🌙 Тёмная' : '☀️ Светлая'}
+              {theme === 'light' ? <span>🌙</span> : <span>☀️</span>}
             </button>
           </div>
         </div>
 
-        {/* Поле поиска */}
-        <input
-          type="text"
-          placeholder="Поиск задач..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-4 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-        />
+        {/* Поиск с эмодзи */}
+        <div className="relative mb-4">
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Поиск задач..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full border rounded pl-10 pr-3 py-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          />
+        </div>
 
-        {/* Панель фильтрации и сортировки (ВОССТАНОВЛЕНА) */}
+        {/* Панель фильтров */}
         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center">
           {/* Фильтр по статусу */}
           <div className="flex gap-2">
@@ -115,17 +118,14 @@ const HomePage: React.FC = () => {
           </select>
         </div>
 
-        {/* Список задач */}
         <TasksList tasks={filteredTasks} onTaskClick={handleTaskClick} />
       </div>
 
-      {/* Модальное окно управления категориями */}
       <CategoryManager
         isOpen={isCategoryManagerOpen}
         onClose={() => setIsCategoryManagerOpen(false)}
       />
 
-      {/* Модальное окно деталей задачи */}
       {selectedTask && (
         <TaskDetailsModal task={selectedTask} onClose={handleCloseModal} />
       )}

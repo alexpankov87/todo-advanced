@@ -3,30 +3,51 @@ import { useAppDispatch, useAppSelector } from '../../hooks/reduxHooks';
 import { updateExistingTask, removeTask } from './tasksSlice';
 import { Task } from '../../types';
 import CategoryBadge from '../categories/CategoryBadge';
+import toast from 'react-hot-toast';
 
 interface TaskItemProps {
   task: Task;
-  onTaskClick: (taskId: string) => void; // новый пропс
+  onTaskClick: (taskId: string) => void;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onTaskClick }) => {
   const dispatch = useAppDispatch();
   const categories = useAppSelector(state => state.categories);
   const [showCategorySelect, setShowCategorySelect] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const taskCategory = categories.find(c => c.id === task.categoryId);
 
-  const handleToggle = () => {
-    dispatch(updateExistingTask({ ...task, completed: !task.completed }));
+  const handleToggle = async () => {
+    try {
+      await dispatch(updateExistingTask({ ...task, completed: !task.completed })).unwrap();
+      toast.success(`Задача ${task.completed ? 'возобновлена' : 'выполнена'}`);
+    } catch {
+      toast.error('Ошибка при обновлении');
+    }
   };
 
-  const handleDelete = () => {
-    dispatch(removeTask(task.id));
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await dispatch(removeTask(task.id)).unwrap();
+      toast.success('Задача удалена');
+    } catch {
+      toast.error('Ошибка при удалении');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  const handleCategoryChange = (categoryId: string | null) => {
-    dispatch(updateExistingTask({ ...task, categoryId }));
-    setShowCategorySelect(false);
+  const handleCategoryChange = async (categoryId: string | null) => {
+    try {
+      await dispatch(updateExistingTask({ ...task, categoryId })).unwrap();
+      toast.success('Категория изменена');
+      setShowCategorySelect(false);
+    } catch {
+      toast.error('Ошибка при изменении категории');
+    }
   };
 
   return (
@@ -38,7 +59,6 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onTaskClick }) => {
           onChange={handleToggle}
           className="w-5 h-5 text-blue-600 dark:bg-gray-700"
         />
-        {/* Вместо Link используем span с обработчиком */}
         <span
           onClick={() => onTaskClick(task.id)}
           className="text-lg hover:underline cursor-pointer dark:text-white"
@@ -50,8 +70,12 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onTaskClick }) => {
           onClick={() => setShowCategorySelect(!showCategorySelect)}
         />
       </div>
-      <button onClick={handleDelete} className="text-red-500 hover:text-red-700">
-        Удалить
+      <button
+        onClick={handleDelete}
+        disabled={isDeleting}
+        className="text-red-500 hover:text-red-700 disabled:opacity-50"
+      >
+        {isDeleting ? <span className="animate-spin">⏳</span> : <span>🗑️</span>}
       </button>
 
       {showCategorySelect && (
