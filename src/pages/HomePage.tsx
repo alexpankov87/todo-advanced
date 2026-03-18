@@ -6,6 +6,8 @@ import TasksList from '../features/tasks/TasksList';
 import TaskDetailsModal from '../features/tasks/TaskDetailsModal';
 import { useTheme } from '../context/ThemeContext';
 import CategoryManager from '../features/categories/CategoryManager';
+// Импорт формы добавления задачи
+import TaskForm from '../features/tasks/TaskForm';
 // Импорты для тостов остаются (они работают)
 import toast from 'react-hot-toast';
 
@@ -63,6 +65,9 @@ const HomePage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Форма добавления новой задачи */}
+        <TaskForm />
 
         {/* Поиск с эмодзи */}
         <div className="relative mb-4">
