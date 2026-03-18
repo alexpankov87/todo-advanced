@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* @source "./src/App.tsx"; */
+/* @source "./src/**//*.{js,ts,jsx,tsx}"; */
