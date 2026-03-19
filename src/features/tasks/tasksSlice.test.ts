@@ -1,24 +1,22 @@
+jest.mock('./tasksAPI', () => ({
+  fetchTasks: jest.fn(),
+  addTask: jest.fn(),
+  updateTask: jest.fn(),
+  deleteTask: jest.fn(),
+}));
+
 import tasksReducer, {
   fetchTasks,
   addNewTask,
   updateExistingTask,
   removeTask,
 } from './tasksSlice';
+
 import * as tasksAPI from './tasksAPI';
 import { Task } from '../../types';
 import { configureStore } from '@reduxjs/toolkit';
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
-
-// Мокаем API
-const mock = new MockAdapter(axios);
-const API_URL = process.env.REACT_APP_API_URL || 'http://test.com';
 
 describe('tasks slice async thunks', () => {
-  afterEach(() => {
-    mock.reset();
-  });
-
   const initialState = {
     items: [],
     status: 'idle' as const,
@@ -35,56 +33,90 @@ describe('tasks slice async thunks', () => {
     createdAt: Date.now(),
   };
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should handle fetchTasks fulfilled', async () => {
-    mock.onGet(API_URL).reply(200, [mockTask]);
+    (tasksAPI.fetchTasks as jest.Mock).mockResolvedValue([mockTask]);
 
     const store = configureStore({ reducer: { tasks: tasksReducer } });
+
     await store.dispatch(fetchTasks());
     const state = store.getState().tasks;
+
     expect(state.items).toEqual([mockTask]);
     expect(state.status).toBe('succeeded');
   });
 
   it('should handle fetchTasks rejected', async () => {
-    mock.onGet(API_URL).reply(500);
+    (tasksAPI.fetchTasks as jest.Mock).mockRejectedValue(new Error('Error'));
 
     const store = configureStore({ reducer: { tasks: tasksReducer } });
+
     await store.dispatch(fetchTasks());
     const state = store.getState().tasks;
+
     expect(state.status).toBe('failed');
     expect(state.error).toBeDefined();
   });
 
   it('should handle addNewTask', async () => {
-    const newTask = { title: 'New', description: '', completed: false, categoryId: null, subtasks: [] };
-    const createdTask = { ...newTask, id: '2', createdAt: Date.now() };
-    mock.onPost(API_URL).reply(201, createdTask);
+    const newTask = {
+      title: 'New',
+      description: '',
+      completed: false,
+      categoryId: null,
+      subtasks: [],
+    };
+
+    const createdTask = {
+      ...newTask,
+      id: '2',
+      createdAt: Date.now(),
+    };
+
+    (tasksAPI.addTask as jest.Mock).mockResolvedValue(createdTask);
 
     const store = configureStore({ reducer: { tasks: tasksReducer } });
+
     await store.dispatch(addNewTask(newTask));
     const state = store.getState().tasks;
+
     expect(state.items).toContainEqual(createdTask);
   });
 
   it('should handle updateExistingTask', async () => {
     const updatedTask = { ...mockTask, title: 'Updated' };
-    mock.onPut(`${API_URL}/${mockTask.id}`).reply(200, updatedTask);
+
+    (tasksAPI.updateTask as jest.Mock).mockResolvedValue(updatedTask);
 
     const store = configureStore({ reducer: { tasks: tasksReducer } });
-    // Сначала добавим задачу в стейт
-    store.dispatch({ type: 'tasks/fetchTasks/fulfilled', payload: [mockTask] });
+
+    store.dispatch({
+      type: 'tasks/fetchTasks/fulfilled',
+      payload: [mockTask],
+    });
+
     await store.dispatch(updateExistingTask(updatedTask));
     const state = store.getState().tasks;
+
     expect(state.items[0].title).toBe('Updated');
   });
 
   it('should handle removeTask', async () => {
-    mock.onDelete(`${API_URL}/${mockTask.id}`).reply(204);
+    (tasksAPI.deleteTask as jest.Mock).mockResolvedValue(undefined);
 
     const store = configureStore({ reducer: { tasks: tasksReducer } });
-    store.dispatch({ type: 'tasks/fetchTasks/fulfilled', payload: [mockTask] });
+
+    store.dispatch({
+      type: 'tasks/fetchTasks/fulfilled',
+      payload: [mockTask],
+    });
+
     await store.dispatch(removeTask(mockTask.id));
     const state = store.getState().tasks;
+
     expect(state.items).toHaveLength(0);
   });
 });

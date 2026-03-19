@@ -8,11 +8,6 @@ import categoriesReducer from '../categories/categoriesSlice';
 import TaskItem from './TaskItem';
 import { Task } from '../../types';
 
-jest.mock('react-router-dom', () => ({
-  BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
-}));
-
 // Мокаем toast
 jest.mock('react-hot-toast', () => ({
   success: jest.fn(),
