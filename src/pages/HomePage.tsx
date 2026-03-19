@@ -7,7 +7,7 @@ import TaskDetailsModal from '../features/tasks/TaskDetailsModal';
 import AddEditTaskModal from '../features/tasks/AddEditTaskModal';
 import { useTheme } from '../context/ThemeContext';
 import CategoryManager from '../features/categories/CategoryManager';
-import toast from 'react-hot-toast';
+
 
 type FilterType = 'all' | 'active' | 'completed';
 type SortOrder = 'newest' | 'oldest';
