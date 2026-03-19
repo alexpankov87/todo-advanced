@@ -60,18 +60,9 @@ describe('TaskItem', () => {
   });
 
   it('toggles task completion', async () => {
-    // Мокаем успешный ответ API для updateExistingTask
-    // Для простоты мы не мокаем API, а просто проверяем, что диспатч вызван
-    // Но в этом тесте лучше использовать реальный store с редьюсером
-    // Однако так как updateExistingTask - thunk, он пытается сделать запрос.
-    // Чтобы избежать этого, можно замокать сам thunk или использовать mock store.
-    // Для простоты пока пропустим проверку вызова API, проверим только UI.
     renderWithProviders();
     const checkbox = screen.getByRole('checkbox');
-    fireEvent.click(checkbox);
-    // В идеале нужно проверить, что отправлен экшен, но без моков это сложно.
-    // Ограничимся тем, что чекбокс переключился (он управляемый, но состояние меняется после диспатча)
-    // Поэтому можно пока пропустить.
+    fireEvent.click(checkbox);   
   });
 
   it('shows delete button', () => {

@@ -4,6 +4,9 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Мок для API URL, чтобы тесты не падали
+process.env.REACT_APP_API_URL = 'https://mockapi.example.com/tasks';
+
 jest.mock('axios', () => ({
   __esModule: true,
   default: {
@@ -14,3 +17,17 @@ jest.mock('axios', () => ({
   },
 }));
 
+// Мок для window.matchMedia (необходим для ThemeProvider)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,                         // явно задаём булево значение
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),                 // для старых API
+    removeListener: jest.fn(),               // для старых API
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+})
