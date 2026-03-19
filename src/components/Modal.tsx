@@ -22,8 +22,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
       <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 mx-4">
-        <h2 className="text-xl font-bold mb-4 dark:text-white">{title}</h2>
-        {children}
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{title}</h2>
+        <div className="text-gray-700 dark:text-gray-200">
+          {children}
+        </div>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"

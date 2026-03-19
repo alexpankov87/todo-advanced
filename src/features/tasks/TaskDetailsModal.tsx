@@ -3,6 +3,7 @@ import { useAppDispatch } from '../../hooks/reduxHooks';
 import { updateExistingTask, removeTask } from './tasksSlice';
 import { Task, SubTask } from '../../types';
 import Modal from '../../components/Modal';
+import AddEditTaskModal from './AddEditTaskModal';
 
 interface TaskDetailsModalProps {
   task: Task;
@@ -12,6 +13,7 @@ interface TaskDetailsModalProps {
 const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ task, onClose }) => {
   const dispatch = useAppDispatch();
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleToggleComplete = () => {
     dispatch(updateExistingTask({ ...task, completed: !task.completed }));
@@ -52,6 +54,16 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ task, onClose }) =>
   return (
     <Modal isOpen={true} onClose={onClose} title={task.title}>
       <div className="space-y-4">
+         {/* Шапка с заголовком и кнопкой редактирования */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold dark:text-white">{task.title}</h2>
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            ✏️
+          </button>
+        </div>
         {/* Статус выполнения */}
         <label className="flex items-center space-x-2">
           <input
@@ -123,6 +135,13 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ task, onClose }) =>
           </button>
         </div>
       </div>
+      {isEditModalOpen && (
+        <AddEditTaskModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          taskToEdit={task}
+        />
+      )}
     </Modal>
   );
 };
